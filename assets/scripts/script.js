@@ -8,35 +8,72 @@ const timeFrameEndPoint = baseEndPoint + "timeframe";
 const changeEndPoint = baseEndPoint + "change";
 // API Key
 const apiKey = "1526378ab6452c2d88fc789afee8f650";
-// search box and event listeners
-const searchBox = document.getElementById("search");
-const searchFrom = document.querySelector("form");
-searchBox.addEventListener("keydown", enterKeyPressed);
-searchFrom.addEventListener("keyup", keyPressed);
-// place holders for coins
+// Element References and event handler assignments
+const searchBox = document.getElementById("search"); // search box itself
+searchBox.addEventListener("keyup", filterSearchTable);
+
+const searchFroms = document.querySelectorAll("form"); // all forms on the page
+searchFroms.forEach(form => form.addEventListener("keydown", enterKeyPressed));
+
+const convertCoinNavbarButton = document.getElementById("convert-coin");
+convertCoinNavbarButton.addEventListener("click", convertNavbarButtonClicked);
+
+const convertSubmitButton = document.getElementById("convert-submit");
+convertSubmitButton.addEventListener("click", convertSubmitButtonClicked);
+/*
+    Start of web app
+*/
+fetchCoinsData().then(displayCoinsDataTable).catch(console.error);
+/*
+    Global Variables
+*/
 let coins = [];
-// Constructors
+/*
+    Constructor Functions
+*/
 function CryptoCoin(symbol, rate, imageURL) {
     this.symbol = symbol;
     this.rate = rate;
     this.imageURL = imageURL;
 }
-// Start of app
-fetchCoinsData()
-    .then(displayCoinsDataTable)
-    .catch(console.error)
 /* 
-    Event Handlers
+    Event Handler Functions
 */
+function filterSearchTable(evt) {
+    evt.preventDefault();
+    searchDataEntered();
+}
 function enterKeyPressed(evt) {
     if (evt.key === "Enter") {
         evt.preventDefault();
-        searchDataEntered();
     }
 }
-function keyPressed(evt) {
+function convertNavbarButtonClicked(evt) {
     evt.preventDefault();
-    searchDataEntered();
+    const fromCoinList = document.getElementById("from-coin");
+    const toCoinList = document.getElementById("to-coin");
+    let symbols = [];
+    coins.forEach(coin => {
+        symbols.push(coin.symbol);
+    })
+
+    createOptionList(symbols, fromCoinList);
+    createOptionList(symbols, toCoinList);
+}
+function convertSubmitButtonClicked(evt) {
+    evt.preventDefault();
+    const amountOfCoin = document.getElementById("coin-amount").value;
+    const fromCoinSybmol = document.getElementById("from-coin").value;
+    const toCoinSymbol = document.getElementById("to-coin").value;
+    const convertResult = document.getElementById("covert-result");
+
+    if (isNaN(amountOfCoin)) { // if amountOfCoin is not a number, alert the user
+        alert(`${amountOfCoin} is not a number. Please try again`);
+    }
+    
+    convertCoins(amountOfCoin, fromCoinSybmol, toCoinSymbol)
+        .then((result) => convertResult.innerText = `${result.result} ${toCoinSymbol}`)
+        .catch(console.error)
 }
 /* 
     Fetch Functions
@@ -54,8 +91,15 @@ async function fetchCoinsData() {
     // return our data
     return [coinsData, ratesData];
 }
+async function convertCoins(amount, from, to) {
+    let convertURLString = `${convertEndPoint}?access_key=${apiKey}&amount=${amount}&from=${from}&to=${to}`;
+
+    let convertResponse = await fetch(convertURLString);
+    let convertResult = await convertResponse.json();
+    return convertResult;
+}
 /*
-    Helper and processing functions
+    Helper and Processing Functions
 */
 function displayCoinsDataTable(data) {
     let tableBody = document.querySelector("tbody");
@@ -82,14 +126,33 @@ function displayCoinsDataTable(data) {
         tr.appendChild(symbolTD);
         // add rate to view
         let rateTD = document.createElement("td");
-        rateTD.innerText = rate;
+        // if rate is nigher than 0.00, round number, else do not round
+        if (rate >! 0.00) {
+            rateTD.innerText = `$${roundAccurately(rate, 2)}`
+        } else {
+            rateTD.innerText = `$${rate}`
+        }
         tr.appendChild(rateTD);
         // add tr to tbody
         tableBody.appendChild(tr);
     })
 }
+function roundAccurately(number, decimalPlaces) {
+    // use exponential notation to round to a specific decimal place
+    return Number(Math.round(number + "e" + decimalPlaces) + "e-" + decimalPlaces)
+}
+function createOptionList(options, parentElement) {
+    while(parentElement.firstChild) { // while a list item is present
+        parentElement.removeChild(parentElement.firstChild); // remove it
+    }
+    options.forEach((option) => {
+        let optionElement = document.createElement("option");
+        optionElement.innerText = option;
+        optionElement.value = option;
+        parentElement.appendChild(optionElement);
+    })
+}
 function searchDataEntered() {
-    const table = document.querySelector("table");
     let tr = document.getElementsByTagName("tr");
     let searchTerm = searchBox.value.toUpperCase();
     let textValue;
