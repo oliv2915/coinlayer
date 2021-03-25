@@ -31,8 +31,9 @@ let coins = [];
 /*
     Constructor Functions
 */
-function CryptoCoin(symbol, rate, imageURL) {
+function CryptoCoin(symbol, name, rate, imageURL) {
     this.symbol = symbol;
+    this.name = name;
     this.rate = rate;
     this.imageURL = imageURL;
 }
@@ -54,7 +55,10 @@ function convertNavbarButtonClicked(evt) {
     const toCoinList = document.getElementById("to-coin");
     let symbols = [];
     coins.forEach(coin => {
-        symbols.push(coin.symbol);
+        symbols.push({
+            symbol: coin.symbol,
+            name: coin.name
+        });
     })
 
     createOptionList(symbols, fromCoinList);
@@ -113,15 +117,15 @@ function displayCoinsDataTable(data) {
     let ratesData = data[1];
     // create a new CryptoCoin for each key found in coinsData
     for (key in coinsData) {
-        coins.push(new CryptoCoin(key, ratesData[key], coinsData[key]["icon_url"]))
+        coins.push(new CryptoCoin(key, coinsData[key].name , ratesData[key], coinsData[key]["icon_url"]))
     }
     // create a row for each coin
     coins.forEach(coin => {
+        // add icon to view
         let tr = document.createElement("tr");
-        let {symbol, rate, imageURL} = coin;
-        // add image to view
-        let imgTD = document.createElement("td");
-        let img = document.createElement("img")
+        let {symbol, name, rate, imageURL} = coin;
+        let imgTD = document.createElement("td"); // create td element
+        let img = document.createElement("img") // create image element
         img.src = imageURL;
         img.width = 32;
         imgTD.appendChild(img);
@@ -130,6 +134,10 @@ function displayCoinsDataTable(data) {
         let symbolTD = document.createElement("td");
         symbolTD.innerText = symbol
         tr.appendChild(symbolTD);
+        // add coin name
+        let nameTD = document.createElement("td");
+        nameTD.innerText = name
+        tr.appendChild(nameTD)
         // add rate to view
         let rateTD = document.createElement("td");
         // if rate is nigher than 0.00, round number, else do not round
@@ -153,8 +161,8 @@ function createOptionList(options, parentElement) {
     }
     options.forEach((option) => {
         let optionElement = document.createElement("option");
-        optionElement.innerText = option;
-        optionElement.value = option;
+        optionElement.innerText = `${option.name} (${option.symbol})`;
+        optionElement.value = option.symbol;
         parentElement.appendChild(optionElement);
     })
 }
