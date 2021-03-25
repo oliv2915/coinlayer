@@ -68,7 +68,13 @@ function convertSubmitButtonClicked(evt) {
     const convertResult = document.getElementById("covert-result");
 
     if (isNaN(amountOfCoin)) { // if amountOfCoin is not a number, alert the user
-        alert(`${amountOfCoin} is not a number. Please try again`);
+        alert(`${amountOfCoin} is not a number. Please try again.`);
+        return;
+    }
+
+    if (amountOfCoin == 0) { // amount of coin can not be zero
+        alert("Amount of coin to convert must be greater than 0. Please try again.")
+        return;
     }
     
     convertCoins(amountOfCoin, fromCoinSybmol, toCoinSymbol)
