@@ -1,5 +1,5 @@
 // endpoints
-const baseEndPoint = "http://api.coinlayer.com/api/";
+const baseEndPoint = "https://api.coinlayer.com/api/";
 const listEndPoint = baseEndPoint + "list";
 const liveEndPoint = baseEndPoint + "live";
 // const historicalURL = baseEndPoint + "" // historical uses an ISO data YYYY-MM-DD
