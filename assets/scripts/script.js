@@ -1,5 +1,5 @@
 // endpoints
-const baseEndPoint = "https://api.coinlayer.com/api/";
+const baseEndPoint = "https://api.coinlayer.com/";
 const listEndPoint = baseEndPoint + "list";
 const liveEndPoint = baseEndPoint + "live";
 // const historicalURL = baseEndPoint + "" // historical uses an ISO data YYYY-MM-DD
@@ -15,16 +15,16 @@ searchBox.addEventListener("keydown", enterKeyPressed);
 searchFrom.addEventListener("keyup", keyPressed);
 // place holders for coins
 let coins = [];
-
 // Constructors
 function CryptoCoin(symbol, rate, imageURL) {
     this.symbol = symbol;
     this.rate = rate;
     this.imageURL = imageURL;
 }
-
 // Start of app
-fetchCoinsData();
+fetchCoinsData()
+    .then(displayCoinsDataTable)
+    .catch(console.error)
 /* 
     Event Handlers
 */
@@ -44,27 +44,27 @@ function keyPressed(evt) {
 async function fetchCoinsData() {
     // fetch coins data
     let coinsResponse = await fetch(`${listEndPoint}?access_key=${apiKey}`);
-    let coinsResults = await checkForOkResponse(coinsResponse);
+    let coinsResults = await coinsResponse.json();
     let coinsData = coinsResults.crypto;
     
     // fetch coins rates
     let ratesResponse = await fetch(`${liveEndPoint}?access_key=${apiKey}`);
-    let ratesResults = await checkForOkResponse(ratesResponse);
+    let ratesResults = await ratesResponse.json();
     let ratesData = ratesResults.rates;
-
+    // return our data
+    return [coinsData, ratesData];
+}
+/*
+    Helper and processing functions
+*/
+function displayCoinsDataTable(data) {
+    let tableBody = document.querySelector("tbody");
+    let coinsData = data[0];
+    let ratesData = data[1];
     // create a new CryptoCoin for each key found in coinsData
     for (key in coinsData) {
         coins.push(new CryptoCoin(key, ratesData[key], coinsData[key]["icon_url"]))
     }
-    // display the data
-    displayCoinsDataTable();
-}
-
-/*
-    Helper and processing functions
-*/
-function displayCoinsDataTable() {
-    let tableBody = document.querySelector("tbody");
     // create a row for each coin
     coins.forEach(coin => {
         let tr = document.createElement("tr");
@@ -88,14 +88,6 @@ function displayCoinsDataTable() {
         tableBody.appendChild(tr);
     })
 }
-
-function checkForOkResponse(response) {
-    if (!response.ok) { // if error is found
-        return Promise.reject(response.status); // return a promise reject
-    }
-    return response.json(); // return our response as it passed the check
-}
-
 function searchDataEntered() {
     const table = document.querySelector("table");
     let tr = document.getElementsByTagName("tr");
