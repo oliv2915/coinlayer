@@ -95,7 +95,7 @@ async function fetchCoinsData() {
     let coinsData = coinsResults.crypto;
     
     // fetch coins rates
-    let ratesResponse = await fetch(`${liveEndPoint}?access_key=${apiKey}`);
+    let ratesResponse = await fetch(`${liveEndPoint}?access_key=${apiKey}&expand=1`);
     let ratesResults = await ratesResponse.json();
     let ratesData = ratesResults.rates;
     // return our data
@@ -121,39 +121,50 @@ function displayCoinsDataTable(data) {
     }
     // create a row for each coin
     coins.forEach(coin => {
-        // add icon to view
+        // add coin logo to view
         let tr = document.createElement("tr");
         let {symbol, name, rate, imageURL} = coin;
         let imgTD = document.createElement("td"); // create td element
         let img = document.createElement("img") // create image element
-        img.src = imageURL;
-        img.width = 32;
-        imgTD.appendChild(img);
-        tr.appendChild(imgTD)
+        img.src = imageURL; // set img src
+        img.width = 32; // set img size
+        imgTD.appendChild(img); // add image to td element
+        tr.appendChild(imgTD) // add row to img to table row
+
         // add symbol to view
         let symbolTD = document.createElement("td");
         symbolTD.innerText = symbol
         tr.appendChild(symbolTD);
+
         // add coin name
         let nameTD = document.createElement("td");
         nameTD.innerText = name
         tr.appendChild(nameTD)
+
         // add rate to view
         let rateTD = document.createElement("td");
-        // if rate is nigher than 0.00, round number, else do not round
-        if (rate >! 0.00) {
-            rateTD.innerText = `$${roundAccurately(rate, 2)}`
-        } else {
-            rateTD.innerText = `$${rate}`
-        }
+        rateTD.innerText = `${rate.rate}`;
         tr.appendChild(rateTD);
+        // add high / low numbers to view
+        let highLowTD = document.createElement("td");
+        // if not null, so the returned value
+        if (rate.high) {
+            highLowTD.innerText = `${rate.high}`;
+        } else {
+            // else set to 0
+            highLowTD.innerText = "0";
+        }
+
+        if (rate.low) {
+            highLowTD.innerText += ` / ${rate.low}`;
+        } else {
+            highLowTD.innerText += " / 0";
+        }
+        
+        tr.appendChild(highLowTD);
         // add tr to tbody
         tableBody.appendChild(tr);
     })
-}
-function roundAccurately(number, decimalPlaces) {
-    // use exponential notation to round to a specific decimal place
-    return Number(Math.round(number + "e" + decimalPlaces) + "e-" + decimalPlaces)
 }
 function createOptionList(options, parentElement) {
     while(parentElement.firstChild) { // while a list item is present
